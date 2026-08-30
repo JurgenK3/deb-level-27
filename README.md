@@ -17,7 +17,7 @@ Aprire `index.html` oppure servire la cartella con un qualsiasi server statico.
 
 ## Modificare il regalo
 
-In `game.js`, nella funzione `finale()`, sostituire il contenuto del gestore `data-gift`. È possibile cambiare la schermata placeholder o impostare un link con `window.location.href = "..."`.
+Il voucher si trova in `assets/voucher-alpitour-200.jpeg`. La schermata e il pulsante di download sono definiti in `game.js`, nella funzione `finale()`.
 
 ## Pubblicazione
 
