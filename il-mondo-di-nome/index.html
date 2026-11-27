@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<title>Il Mondo di [Nome] — prototipo interno v0.1</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Ccircle cx=%2216%22 cy=%2216%22 r=%2214%22 fill=%22%23E0A526%22 stroke=%22%232B2320%22 stroke-width=%223%22/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- ============ CONFIGURAZIONE ============ -->
+  <section id="screen-setup" class="screen active" aria-labelledby="setup-title">
+    <div class="page">
+      <header class="panel title-panel">
+        <p class="badge">Prototipo interno v0.1 · solo per test</p>
+        <h1 id="setup-title">Il Mondo di <span class="name-slot">[Nome]</span></h1>
+        <p>Configura il gioco come farebbe chi regala. Tutto resta in questo browser: nessun dato viene inviato.</p>
+      </header>
+
+      <form id="setup-form" class="panel" novalidate>
+        <h2>1 · Chi festeggia</h2>
+        <div class="row">
+          <label class="field">Nome da mostrare
+            <input id="f-name" name="name" type="text" maxlength="16" autocomplete="off" value="Giulia" required>
+            <small>2–16 caratteri: lettere, spazio, apostrofo, trattino.</small>
+          </label>
+          <label class="field">Come ci rivolgiamo
+            <select id="f-form" name="form">
+              <option value="f" selected>Al femminile</option>
+              <option value="m">Al maschile</option>
+              <option value="n">Forma neutra</option>
+            </select>
+          </label>
+          <label class="field">Età compiuta
+            <input id="f-age" name="age" type="number" min="6" max="110" value="40">
+          </label>
+          <label class="field">Modalità di partenza
+            <select id="f-mode" name="mode">
+              <option value="passeggiata">Passeggiata</option>
+              <option value="avventura" selected>Avventura</option>
+              <option value="sfida">Sfida</option>
+            </select>
+          </label>
+        </div>
+
+        <h2>2 · Foto e personaggio</h2>
+        <div class="row photo-row">
+          <div class="field">
+            <span>Corpo del personaggio</span>
+            <div class="seg" role="radiogroup" aria-label="Corpo">
+              <label class="seg-btn"><input type="radio" name="body" value="donna" checked><span>Donna</span></label>
+              <label class="seg-btn"><input type="radio" name="body" value="uomo"><span>Uomo</span></label>
+            </div>
+            <small>Bambino e bambina previsti nel prodotto, non in questo prototipo.</small>
+          </div>
+          <div class="field">
+            <span>Foto del volto</span>
+            <label class="btn btn-primary file-btn">Scegli una foto
+              <input id="f-photo" type="file" accept="image/jpeg,image/png,image/webp">
+            </label>
+            <small>Una foto recente, di fronte, con il viso ben illuminato. Il ritaglio è automatico.</small>
+            <p id="face-status" class="status" role="status" aria-live="polite">Nessuna foto caricata.</p>
+          </div>
+        </div>
+        <div class="preview-wrap">
+          <div class="preview-card">
+            <canvas id="char-preview" width="200" height="500" aria-label="Anteprima del personaggio"></canvas>
+          </div>
+          <div class="preview-side">
+            <canvas id="head-preview" width="160" height="200" aria-label="Testa ritagliata"></canvas>
+            <button type="button" id="btn-recrop" class="btn" disabled>Rifai ritaglio</button>
+            <small>Facoltativo: prova un'inquadratura diversa (più larga, più stretta o un altro volto).</small>
+          </div>
+        </div>
+        <label class="check"><input type="checkbox" id="f-consent" checked> Confermo di avere il consenso della persona ritratta (testo provvisorio).</label>
+
+        <h2>3 · Domande per «La Porta dei Ricordi»</h2>
+        <p class="hint">Precompilate con l'esempio fittizio del GDD (§8). Il livello ne usa 3 a caso tra quelle complete.</p>
+        <div id="quiz-editor"></div>
+
+        <div class="actions">
+          <button type="submit" class="btn btn-primary btn-big" id="btn-start">Crea il gioco e vai alla mappa</button>
+          <button type="button" class="btn" id="btn-reset">Cancella tutti i dati</button>
+        </div>
+        <p id="setup-error" class="status error" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- ============ MAPPA ============ -->
+  <section id="screen-map" class="screen" aria-labelledby="map-title">
+    <div class="hud-top">
+      <div class="strip"><h1 id="map-title">Il Mondo di <span class="name-slot"></span></h1></div>
+      <div class="strip stars-total" aria-label="Stelle totali">★ <span id="stars-total">0</span>/9</div>
+      <button class="btn btn-icon" id="btn-edit" aria-label="Torna alla configurazione">⚙</button>
+    </div>
+    <div class="map-wrap">
+      <svg id="map-svg" viewBox="0 0 1000 600" preserveAspectRatio="xMidYMid meet" aria-hidden="true"></svg>
+      <div id="map-nodes"></div>
+    </div>
+    <p class="map-caption panel">Mondo 1 · <strong>Le radici</strong> — tocca una tappa sbloccata per giocare.</p>
+  </section>
+
+  <!-- ============ LIVELLO (canvas) ============ -->
+  <section id="screen-level" class="screen" aria-label="Livello">
+    <canvas id="game"></canvas>
+    <div class="hud-top hud-game">
+      <div class="strip" id="hud-left"></div>
+      <div class="strip" id="hud-mid"></div>
+      <button class="btn btn-icon" id="btn-pause" aria-label="Pausa">❚❚</button>
+    </div>
+    <div id="touch-l1" class="touch-pad hidden">
+      <div class="tp-left">
+        <button class="tbtn" data-k="left" aria-label="Sinistra">◀</button>
+        <button class="tbtn" data-k="right" aria-label="Destra">▶</button>
+      </div>
+      <div class="tp-right">
+        <button class="tbtn tbtn-jump" data-k="jump" aria-label="Salto">Salto</button>
+      </div>
+    </div>
+    <div id="touch-l2" class="touch-pad hidden">
+      <div class="dpad">
+        <button class="tbtn" data-d="up" aria-label="Su">▲</button>
+        <button class="tbtn" data-d="left" aria-label="Sinistra">◀</button>
+        <button class="tbtn" data-d="right" aria-label="Destra">▶</button>
+        <button class="tbtn" data-d="down" aria-label="Giù">▼</button>
+      </div>
+      <button class="btn btn-small" id="btn-dpad-toggle">Croce: sì</button>
+    </div>
+    <div id="rotate-hint" class="toast hidden">Ruota il telefono in orizzontale per giocare meglio <button class="btn btn-small" id="btn-rotate-ok">OK</button></div>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="screen-quiz" class="screen" aria-labelledby="quiz-q">
+    <div class="hud-top">
+      <div class="strip">La Porta dei Ricordi</div>
+      <div class="strip" id="quiz-progress"></div>
+      <button class="btn btn-icon" id="btn-quiz-pause" aria-label="Pausa">❚❚</button>
+    </div>
+    <div class="quiz-wrap">
+      <div class="door" id="quiz-door" aria-hidden="true"><div class="door-leaf"></div></div>
+      <div class="panel quiz-panel">
+        <h2 id="quiz-q"></h2>
+        <ol id="quiz-answers" class="answers"></ol>
+        <p id="quiz-feedback" class="status" role="status" aria-live="polite"></p>
+        <div class="actions">
+          <button class="btn" id="btn-quiz-help">Elimina una risposta sbagliata</button>
+          <button class="btn btn-primary" id="btn-quiz-next" hidden>Avanti</button>
+        </div>
+        <p class="hint">Tastiera: 1–4 oppure frecce + Invio.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ VITTORIA ============ -->
+  <section id="screen-win" class="screen" aria-labelledby="win-title">
+    <div class="page center">
+      <div class="panel win-panel">
+        <h1 id="win-title"></h1>
+        <canvas id="win-char" width="200" height="500" aria-hidden="true"></canvas>
+        <p class="stars-big" id="win-stars" aria-live="polite"></p>
+        <p id="win-text"></p>
+        <div class="actions">
+          <button class="btn btn-primary btn-big" id="btn-win-map">Torna alla mappa</button>
+          <button class="btn" id="btn-win-retry">Rigioca</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PAUSA / DIALOGHI ============ -->
+  <div id="modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="panel modal-panel">
+      <h2 id="modal-title"></h2>
+      <p id="modal-text"></p>
+      <div id="modal-actions" class="actions vertical"></div>
+    </div>
+  </div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>
